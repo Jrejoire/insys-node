@@ -52,9 +52,29 @@ io.on("connection", function (socket) {
         io.emit('deletedTable', table);
     })
     
-    socket.on('joinTable', (tableID) => {
-        socket.join(tableID);
+    // redirect to armybuilder (miniaturena.com/build?table=dsdsdsfsdcsfds)
+    socket.on('joinTable', (tableId) => {
+        socket.join(tableId);
+        // set player 2 please
+        if (io.sockets.clients(tableId).length >= 2) {
+            io.sockets.in(tableId).emit("builderRedirect", `/build?table=${tableId}`)
+        }
     })
+    
+    // once teams are selected redirect to miniaturena.com/init?table=dsdsdsfsdcsfds
+    socket.on('initGame', (tableId, player, armyArray) => {
+        let table = openTables.filter(table => table._id === tableId)[0];
+        if (table.player1 === player){
+            table.player1Army = armyArray;
+        } else if (table.player2 === player) {
+            table.player2Army = armyArray;
+        }
+        if (/*both players have sent their army array*/) {
+            io.sockets.in(tableId).emit("builderRedirect", `/init?table=${tableId}`)
+        }
+    })
+    
+    // finally starting the game redirect to miniaturena.com/game?table=dsdsdsfsdcsfds 
     
     /*Table.watch().on('change', (change) => {
         io.emit('changes', change);
