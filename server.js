@@ -51,7 +51,11 @@ io.on("connection", function (socket) {
     socket.on('deleteTable', (table) => {
         io.emit('deletedTable', table);
     })
-
+    
+    socket.on('joinTable', (tableID) => {
+        socket.join(tableID);
+    })
+    
     /*Table.watch().on('change', (change) => {
         io.emit('changes', change);
     })*/
