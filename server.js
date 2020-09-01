@@ -29,7 +29,7 @@ connection.once('open', () => {
 var server = app.listen(port, () => console.log(`Listening to server ${port}`));
 
 var io = require('socket.io').listen(server);
-var openTables = [];
+var openTables = {};
 
 io.on("connection", function (socket) {
     // player has connected
@@ -48,9 +48,10 @@ io.on("connection", function (socket) {
         io.emit('createdTable', table);
     })
 
-    socket.on('deleteTable', (table) => {
-        io.emit('deletedTable', table);
+    socket.on('deleteTable', (tableId) => {
+        io.emit('deletedTable', tableId);
     })
+<<<<<<< HEAD
     
     // redirect to armybuilder (miniaturena.com/build?table=dsdsdsfsdcsfds)
     socket.on('joinTable', (tableId) => {
@@ -79,6 +80,9 @@ io.on("connection", function (socket) {
     /*Table.watch().on('change', (change) => {
         io.emit('changes', change);
     })*/
+=======
+
+>>>>>>> origin/master
 });
 
 app.get('/', async (req, res) => {
@@ -96,9 +100,9 @@ app.get('/table', async (req, res) => {
                 })
             }
         });*/
-        return res.json({
-            openTables
-        })
+        return res.json(
+            Object.values(openTables)
+        )
     } catch (err) {
         res.status(500).json('Error: ' + err)
     }
@@ -107,20 +111,20 @@ app.get('/table', async (req, res) => {
 app.post('/table/create', async function (req, res) {
     try {
         const { player1 } = req.body;
-        console.log(`Table created by ${player1}.`)
 
-        const existingTable = await openTables.filter(table => table.player1 === player1);
+        const existingTable = await Object.values(openTables).filter(table => table.player1 === player1);
         if (existingTable.length > 0) {
             return res.status(400).json({ msg: `A table created by ${player1} already exists.` })
         }
-        
+
+        console.log(`Table created by ${player1}.`)
         const newTable = new Table({
             player1
         });
 
         if (newTable) {
-            openTables.push(newTable);
-            return res.json({newTable})
+            openTables[newTable._id] = newTable;
+            return res.json(newTable)
         }
 
         /*
@@ -144,13 +148,12 @@ app.post('/table/create', async function (req, res) {
 
 app.delete('/table/delete', async function (req, res) {
     try {
-        const { player } = req.body;
-        console.log(`Delete ${player}'s table.`);
+        const { tableId } = req.body;
+        console.log(`Delete table ${tableId}.`);
         /*const deletedTable = await Table.findByIdAndDelete(tableID);
         res.json(deletedTable);*/
-        const deletedTable = openTables.filter(table => table.player1 === player);
-        openTables = openTables.filter(table => table.player1 !== player);
-        return res.json({deletedTable})
+        delete openTables.tableId;
+        return res.json(tableId)
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
