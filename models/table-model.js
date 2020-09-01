@@ -10,7 +10,8 @@ const tableSchema = new Schema(
         map: { type: String, default: "Containers" },
         playerTime: { type: Number, default: 1500 },
         maxVal: { type: Number, default: 10 },
-        createdAt: { type: String, default: Date.now()}
+        createdAt: { type: String, default: Date.now()},
+        isFull: { type: Boolean, default: false}
     },
     {
         timestamps: true,

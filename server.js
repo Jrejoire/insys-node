@@ -30,59 +30,59 @@ var server = app.listen(port, () => console.log(`Listening to server ${port}`));
 
 var io = require('socket.io').listen(server);
 var openTables = {};
+var fullTables = {};
 
 io.on("connection", function (socket) {
     // player has connected
     console.log("Player connected");
 
-    socket.on('joinTable', (tableID) => {
-        console.log(`user joined table ${tableID}`)
-        socket.join(tableID)
-    })
-
     socket.on("disconnect", function () {
         console.log("Player disconnected");
     });
-
+    
     socket.on('createTable', (table) => {
         io.emit('createdTable', table);
     })
-
+    
     socket.on('deleteTable', (tableId) => {
         io.emit('deletedTable', tableId);
     })
-<<<<<<< HEAD
     
-    // redirect to armybuilder (miniaturena.com/build?table=dsdsdsfsdcsfds)
-    socket.on('joinTable', (tableId) => {
+    socket.on('joinTable', (tableId, player2) => {
+        console.log(`user joined table ${tableId}`);
         socket.join(tableId);
-        // set player 2 please
-        if (io.sockets.clients(tableId).length >= 2) {
-            io.sockets.in(tableId).emit("builderRedirect", `/build?table=${tableId}`)
+        
+        //setting player 2;
+        if (player2 && !openTables[tableId].isFull) {
+            openTables[tableId].player2 = player2;
+            openTables[tableId].isFull = true;
+        }
+        // redirect to armybuilder (miniaturena.com/build?table=tableId);
+        if (socket.adapter.rooms[tableId].length === 2) {
+            io.sockets.in(tableId).emit("redirect", `/build?table=${tableId}`)
         }
     })
+
+
     
     // once teams are selected redirect to miniaturena.com/init?table=dsdsdsfsdcsfds
-    socket.on('initGame', (tableId, player, armyArray) => {
+    /*socket.on('initGame', (tableId, player, armyArray) => {
         let table = openTables.filter(table => table._id === tableId)[0];
         if (table.player1 === player){
             table.player1Army = armyArray;
         } else if (table.player2 === player) {
             table.player2Army = armyArray;
         }
-        if (/*both players have sent their army array*/) {
+        if (both players have sent their army array) {
             io.sockets.in(tableId).emit("builderRedirect", `/init?table=${tableId}`)
         }
-    })
+    })*/
     
     // finally starting the game redirect to miniaturena.com/game?table=dsdsdsfsdcsfds 
     
     /*Table.watch().on('change', (change) => {
         io.emit('changes', change);
     })*/
-=======
-
->>>>>>> origin/master
 });
 
 app.get('/', async (req, res) => {
@@ -101,7 +101,7 @@ app.get('/table', async (req, res) => {
             }
         });*/
         return res.json(
-            Object.values(openTables)
+            Object.values(openTables).filter(table => !table.isFull)
         )
     } catch (err) {
         res.status(500).json('Error: ' + err)
@@ -152,7 +152,7 @@ app.delete('/table/delete', async function (req, res) {
         console.log(`Delete table ${tableId}.`);
         /*const deletedTable = await Table.findByIdAndDelete(tableID);
         res.json(deletedTable);*/
-        delete openTables.tableId;
+        delete openTables[tableId];
         return res.json(tableId)
     } catch (err) {
         res.status(500).json({ error: err.message });
