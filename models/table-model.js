@@ -11,7 +11,8 @@ const tableSchema = new Schema(
         playerTime: { type: Number, default: 1500 },
         maxVal: { type: Number, default: 10 },
         createdAt: { type: String, default: Date.now()},
-        isFull: { type: Boolean, default: false}
+        isFull: { type: Boolean, default: false},
+        gameUrl: { type: String }
     },
     {
         timestamps: true,
