@@ -115,23 +115,6 @@ app.post('/table/create', async function (req, res) {
     }
 });
 
-app.post('/setArmy', async function (req, res) {
-    try {
-        const { selection, username, tableId } = req.body;
-
-        if (selection, username, tableId) {
-            if (openTables[tableId].player1 === username) {
-                openTables[tableId].player1Army = selection;
-            } else {
-                openTables[tableId].player2Army = selection;
-            }
-            return res.json(openTables[tableId])
-        }
-    } catch (err) {
-        res.status(500).json('Error: ' + err)
-    }
-});
-
 app.delete('/table/delete', async function (req, res) {
     try {
         const { tableId } = req.body;
