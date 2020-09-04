@@ -62,28 +62,23 @@ io.on("connection", function (socket) {
             openTables[tableId].gameUrl = `/build?table=${tableId}`;
             io.sockets.in(tableId).emit("redirect", `/build?table=${tableId}`)
         }
+        
+     socket.on('setArmy', (tableId, player, selection) => {
+        console.log(`${player} from table ${tableId} is ready.`);
+         
+        if (openTables[tableId].player1 === player){
+            openTables[tableId].player1Army = selection;
+        } else if (openTables[tableId].player2 === player) {
+            openTables[tableId].player2Army = selection;
+        }
+        
+        // once teams are selected redirect to miniaturena.com/init?table=dsdsdsfsdcsfds
+        if (openTables[tableId].player1Army.length > 0 && openTables[tableId].player2Army.length > 0) {
+            io.sockets.in(tableId).emit("redirect", `/init?table=${tableId}`)
+        }        
     })
-
-
-    
-    // once teams are selected redirect to miniaturena.com/init?table=dsdsdsfsdcsfds
-    /*socket.on('initGame', (tableId, player, armyArray) => {
-        let table = openTables.filter(table => table._id === tableId)[0];
-        if (table.player1 === player){
-            table.player1Army = armyArray;
-        } else if (table.player2 === player) {
-            table.player2Army = armyArray;
-        }
-        if (both players have sent their army array) {
-            io.sockets.in(tableId).emit("builderRedirect", `/init?table=${tableId}`)
-        }
-    })*/
-    
+   
     // finally starting the game redirect to miniaturena.com/game?table=dsdsdsfsdcsfds 
-    
-    /*Table.watch().on('change', (change) => {
-        io.emit('changes', change);
-    })*/
 });
 
 app.get('/', async (req, res) => {
@@ -146,6 +141,23 @@ app.post('/table/create', async function (req, res) {
         res.status(500).json('Error: ' + err)
     }
 });
+
+/*app.post('/setArmy', async function (req, res) {
+    try {
+        const { selection, username, tableId } = req.body;
+
+        if (selection, username, tableId) {
+            if (openTables[tableId].player1 === username) {
+                openTables[tableId].player1Army = selection;
+            } else {
+                openTables[tableId].player2Army = selection;
+            }
+            return res.json(openTables[tableId])
+        }
+    } catch (err) {
+        res.status(500).json('Error: ' + err)
+    }
+});*/
 
 app.delete('/table/delete', async function (req, res) {
     try {
