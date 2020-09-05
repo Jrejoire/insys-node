@@ -46,6 +46,7 @@ io.on("connection", function (socket) {
     
     socket.on('deleteTable', (tableId) => {
         io.emit('deletedTable', tableId);
+        io.sockets.in(tableId).emit("redirect", `/`);
     })
     
     socket.on('joinTable', (tableId, player2) => {
