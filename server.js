@@ -15,7 +15,7 @@ app.use(express.json());
 app.use(cors());
 
 const uri = process.env.ATLAS_URI;
-mongoose.connect(uri, {
+/*mongoose.connect(uri, {
     useNewUrlParser: true,
     useCreateIndex: true,
     useUnifiedTopology: true
@@ -24,7 +24,7 @@ mongoose.connect(uri, {
 const connection = mongoose.connection;
 connection.once('open', () => {
     console.log("MongoDB database connection established successfully");
-})
+})*/
 
 var server = app.listen(port, () => console.log(`Listening to server ${port}`));
 
@@ -62,20 +62,29 @@ io.on("connection", function (socket) {
             openTables[tableId].gameUrl = `/build?table=${tableId}`;
             io.sockets.in(tableId).emit("redirect", `/build?table=${tableId}`)
         }
+    });
         
-     socket.on('setArmy', (tableId, player, selection) => {
-        console.log(`${player} from table ${tableId} is ready.`);
+    socket.on('setArmy', (tableId, player, selection) => {
+        if (selection.length > 0){
+            console.log(`${player} from table ${tableId} is ready.`);
+        } else {
+            console.log(`${player} from table ${tableId} is not ready.`);
+        }
          
+         // once teams are selected redirect to miniaturena.com/init?table=dsdsdsfsdcsfds
         if (openTables[tableId].player1 === player){
             openTables[tableId].player1Army = selection;
+            if (openTables[tableId].player2Army.length > 0) {
+                openTables[tableId].gameUrl = `/init?table=${tableId}`;
+                io.sockets.in(tableId).emit("redirect", `/init?table=${tableId}`)
+            }   
         } else if (openTables[tableId].player2 === player) {
             openTables[tableId].player2Army = selection;
-        }
-        
-        // once teams are selected redirect to miniaturena.com/init?table=dsdsdsfsdcsfds
-        if (openTables[tableId].player1Army.length > 0 && openTables[tableId].player2Army.length > 0) {
-            io.sockets.in(tableId).emit("redirect", `/init?table=${tableId}`)
-        }        
+            if (openTables[tableId].player1Army.length > 0) {
+                openTables[tableId].gameUrl = `/init?table=${tableId}`;
+                io.sockets.in(tableId).emit("redirect", `/init?table=${tableId}`)
+            }   
+        }       
     })
    
     // finally starting the game redirect to miniaturena.com/game?table=dsdsdsfsdcsfds 
@@ -87,15 +96,6 @@ app.get('/', async (req, res) => {
 
 app.get('/table', async (req, res) => {
     try {
-        /*var tables = await Table.find({}, function (err, result) {
-            if (err) {
-                console.log(err);
-            } else {
-                return res.json({
-                    result
-                })
-            }
-        });*/
         return res.json(
             Object.values(openTables)
         )
@@ -122,21 +122,6 @@ app.post('/table/create', async function (req, res) {
             openTables[newTable._id] = newTable;
             return res.json(newTable)
         }
-
-        /*
-        const existingTable = await Table.findOne({ player1: player1 })
-        if (existingTable) {
-            return res.status(400).json({ msg: `A table created by ${player1} already exists.` })
-        }
-        newTable.save(function (err, table) {
-            if (err) return res.status(400).json('Error: ' + err);
-            if (table) {
-                console.log(table);
-                return res.json({
-                    table
-                })
-            }
-        })*/
     } catch (err) {
         res.status(500).json('Error: ' + err)
     }
@@ -171,4 +156,3 @@ app.delete('/table/delete', async function (req, res) {
         res.status(500).json({ error: err.message });
     }
 })
-
