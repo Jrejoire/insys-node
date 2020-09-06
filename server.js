@@ -46,7 +46,7 @@ io.on("connection", function (socket) {
     
     socket.on('deleteTable', (tableId) => {
         io.emit('deletedTable', tableId);
-        io.sockets.in(tableId).emit("redirect", `/`);
+        socket.to(tableId).emit("redirect", `/`);
     })
     
     socket.on('joinTable', (tableId, player2) => {
@@ -77,13 +77,13 @@ io.on("connection", function (socket) {
             openTables[tableId].player1Army = selection;
             if (openTables[tableId].player2Army.length > 0) {
                 openTables[tableId].gameUrl = `/init?table=${tableId}`;
-                io.sockets.in(tableId).emit("redirect", `/init?table=${tableId}`)
+                io.sockets.in(tableId).emit("redirect", `/init?table=${tableId}`);
             }   
         } else if (openTables[tableId].player2 === player) {
             openTables[tableId].player2Army = selection;
             if (openTables[tableId].player1Army.length > 0) {
                 openTables[tableId].gameUrl = `/init?table=${tableId}`;
-                io.sockets.in(tableId).emit("redirect", `/init?table=${tableId}`)
+                io.sockets.in(tableId).emit("redirect", `/init?table=${tableId}`);
             }   
         }       
     })
