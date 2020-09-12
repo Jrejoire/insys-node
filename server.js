@@ -30,7 +30,6 @@ var server = app.listen(port, () => console.log(`Listening to server ${port}`));
 
 var io = require('socket.io').listen(server);
 var openTables = {};
-var fullTables = {};
 
 io.on("connection", function (socket) {
     // player has connected
@@ -87,8 +86,63 @@ io.on("connection", function (socket) {
             }   
         }       
     })
+
+    socket.on('initRoll', (tableId, player, roll) => {
+        
+        const compareRolls = () => {
+            if (openTables[tableId].player1InitRoll > 0 && openTables[tableId].player2InitRoll > 0) {
+                //compare rolls if equal send try again else declare winner
+                if (openTables[tableId].player1InitRoll > openTables[tableId].player2InitRoll) {
+                    //player1 wins
+                    openTables[tableId].initWinner = openTables[tableId].player1;
+                    io.sockets.in(tableId).emit("initRollWinner", openTables[tableId].player1);
+                    return openTables[tableId].player1
+                } else if (openTables[tableId].player1InitRoll < openTables[tableId].player2InitRoll) {
+                    //player2 wins
+                    openTables[tableId].initWinner = openTables[tableId].player2;
+                    io.sockets.in(tableId).emit("initRollWinner", openTables[tableId].player2);
+                    return openTables[tableId].player2
+                } else if (openTables[tableId].player1InitRoll === openTables[tableId].player2InitRoll) {
+                    //try again
+                    io.sockets.in(tableId).emit("initRollWinner", "none");
+                    return null
+                }
+            }
+        }
+
+        if (player && roll) {
+            //inform other player of roll
+            console.log(`${player} rolled init ${roll} at table ${tableId}`);
+            socket.to(tableId).emit("opponentInitRoll", player, roll);
+
+            //save init roll in table info
+            if (openTables[tableId].player1 === player){
+                if (!openTables[tableId].player1InitRoll || openTables[tableId].player1InitRoll === openTables[tableId].player2InitRoll) {
+                    openTables[tableId].player1InitRoll = roll;
+                } 
+            } else if (openTables[tableId].player2 === player) {
+                if (!openTables[tableId].player2InitRoll || openTables[tableId].player1InitRoll === openTables[tableId].player2InitRoll) {
+                    openTables[tableId].player2InitRoll = roll;
+                }
+            }
+        }
+
+        compareRolls();     
+    });
    
+   //wait for color team selection then redirect to game.
+    socket.on('initGame', (tableId, firstPlayer) => {
+        openTables[tableId].firstPlayer = firstPlayer;
+
+        /*delete openTables[tableId].player1InitRoll;
+        delete openTables[tableId].player2InitRoll;
+        delete openTables[tableId].initRollWinner;*/
+
     // finally starting the game redirect to miniaturena.com/game?table=dsdsdsfsdcsfds 
+        openTables[tableId].gameUrl = `/game?table=${tableId}`;
+        console.log(openTables[tableId].gameUrl);
+        io.sockets.in(tableId).emit("redirect", `/game?table=${tableId}`);
+    });
 });
 
 app.get('/', async (req, res) => {
@@ -97,9 +151,27 @@ app.get('/', async (req, res) => {
 
 app.get('/table', async (req, res) => {
     try {
-        return res.json(
-            Object.values(openTables)
-        )
+        //possible params player or tableId
+        var player = req.query.player;
+        var tableId = req.query.tableId;
+        if (player) {
+            let playerTable = Object.values(openTables).filter(table => table.player1 === player || table.player2 === player)[0];
+            if (playerTable) {
+                return res.json(
+                    playerTable
+                )
+            } else {
+                return res.json({})
+            }
+        } else if (tableId) {
+            return res.json(
+                openTables[tableId]
+            )
+        } else {
+            return res.json(
+                Object.values(openTables)
+            )
+        }
     } catch (err) {
         res.status(500).json('Error: ' + err)
     }
@@ -127,23 +199,6 @@ app.post('/table/create', async function (req, res) {
         res.status(500).json('Error: ' + err)
     }
 });
-
-/*app.post('/setArmy', async function (req, res) {
-    try {
-        const { selection, username, tableId } = req.body;
-
-        if (selection, username, tableId) {
-            if (openTables[tableId].player1 === username) {
-                openTables[tableId].player1Army = selection;
-            } else {
-                openTables[tableId].player2Army = selection;
-            }
-            return res.json(openTables[tableId])
-        }
-    } catch (err) {
-        res.status(500).json('Error: ' + err)
-    }
-});*/
 
 app.delete('/table/delete', async function (req, res) {
     try {
