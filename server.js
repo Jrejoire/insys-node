@@ -81,7 +81,9 @@ io.on("connection", function (socket) {
     })
 
     socket.on('checkJoin', (tableId) => {
-        if (io.sockets.adapter.rooms[tableId] && !io.sockets.adapter.rooms[tableId].sockets[socket.id]) {
+        if (openTables[tableId] && !io.sockets.adapter.rooms[tableId]) {
+            socket.join(tableId);
+        } else if (io.sockets.adapter.rooms[tableId] && !io.sockets.adapter.rooms[tableId].sockets[socket.id]) {
             socket.join(tableId);
         } 
     })
