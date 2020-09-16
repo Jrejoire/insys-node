@@ -96,9 +96,8 @@ io.on("connection", function (socket) {
         if (player2 && openTables[tableId] && !openTables[tableId].isFull) {
             openTables[tableId].player2 = player2;
             openTables[tableId].isFull = true;  
-        }
-        // redirect to armybuilder (miniaturena.com/build?table=tableId);
-        if (openTables[tableId] && socket.adapter.rooms[tableId].length === 2) {
+
+            // redirect to armybuilder (miniaturena.com/build?table=tableId);
             openTables[tableId].gameUrl = `/build?table=${tableId}`;
             io.sockets.in(tableId).emit("redirect", `/build?table=${tableId}`)
         }
