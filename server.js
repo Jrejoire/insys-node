@@ -31,9 +31,9 @@ var server = app.listen(port, () => console.log(`Listening to server ${port}`));
 var io = require('socket.io').listen(server);
 var openTables = {
     /*demo: {
-        _id: "demo",
-        player1: "jrej",
-        player2: "miniaturena",
+        _id: "5ac2d54841212247152",
+        player1: "gamera",
+        player2: "magichowl",
         player1Army: "rebels",
         player2Army: "tabForces",
         player1Units: ["OTTMK","OTTMK","OTTMK"],
@@ -50,8 +50,8 @@ var openTables = {
         currentPlayer: {name: "jrej", team: "teamWhite"},
         teamWhite: "player1",
         teamBlack: "player2",
-        initWinner: "jrej",
-        map: "Containers",
+        initWinner: "gamera",
+        map: "containers",
         playerTime: 1500,
         maxVal: 10,
         createdAt: Date.now(),
@@ -99,7 +99,7 @@ io.on("connection", function (socket) {
 
             // redirect to armybuilder (miniaturena.com/build?table=tableId);
             openTables[tableId].gameUrl = `/build?table=${tableId}`;
-            io.sockets.in(tableId).emit("redirect", `/build?table=${tableId}`)
+            io.sockets.in(tableId).emit("redirect", `/build?table=${tableId}`);
         }
     });
         
@@ -329,7 +329,6 @@ app.post('/table/create', async function (req, res) {
         const newTable = new Table({
             player1
         });
-
         if (newTable) {
             openTables[newTable._id] = newTable;
             return res.json(newTable)
