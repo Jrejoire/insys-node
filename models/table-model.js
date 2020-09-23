@@ -22,7 +22,7 @@ const tableSchema = new Schema(
         teamWhite: { type: String },
         teamBlack: { type: String },
         initWinner: { type: String },
-        map: { type: String, default: "containers" },
+        map: { type: String, default: "suburbia" },
         playerTime: { type: Number, default: 1500 },
         maxVal: { type: Number, default: 10 },
         createdAt: { type: String, default: Date.now},
